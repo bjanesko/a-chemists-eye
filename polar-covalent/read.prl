@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use strict;
+my $a2kJ=2625.5;
+print "# Pot ElecDiff R Ebond Q \n";
+foreach my $f(<H2-*log>){
+	my $qst=$f;$qst=~s/H2.//;$qst=~s/.log//;
+	if(!(-e "Hp-$qst.log")){die "No Hp\n";}
+	if(!(-e "Hm-$qst.log")){die "No Hm\n";}
+	my $E2=`tac $f|grep -m1 "SCF Don"|awk "{print \\\$5}"`;chomp($E2);
+	my $Ep=`tac Hp-$qst.log|grep -m1 "SCF Don"|awk "{print \\\$5}"`;chomp($Ep);
+	my $Em=`tac Hm-$qst.log|grep -m1 "SCF Don"|awk "{print \\\$5}"`;chomp($Em);
+	my $Emm=`tac Hmm-$qst.log|grep -m1 "SCF Don"|awk "{print \\\$5}"`;chomp($Emm);
+	#my $r=`cat H2-$qst.log |grep -m1 -A5 "Optimized" |tail -n1 |awk "{print \\\$4}"`;chomp($r);
+	my $r=`cat H2-$qst.log |grep -m1 -A5 "Optimized"|tail -n1|awk "{print \\\$4}"`;chomp($r);
+	my $q=`tac H2-$qst.log|grep -m1 -B2 "^ Mulliken charges:"|head -n1|awk "{print \\\$3}"`;chomp($q);
+	my $lp=`tac Hp-$qst.log|grep -m1 "Alpha virt"|awk "{print \\\$5}"`;chomp($lp);
+	my $lm=`tac Hm-$qst.log|grep -m1 "Alpha virt"|awk "{print \\\$5}"`;chomp($lm);
+	my $d =`tac H2-$qst.log|grep -m1 "Tot= "     |awk "{print \\\$8}"`;chomp($d);
+	#print "$lp  $lm \n";
+	my $Mp=($Ep+$lp)/2.;
+	my $Mm=($Em+$lm)/2.;
+	my $Eref = $Ep + $Em;
+	if($Emm<$Eref){$Eref=$Emm;}
+	my $DE = -$a2kJ*($E2-$Eref);
+	my $DEc = -$a2kJ*($E2-$Ep-$Em);
+	print sprintf("%6s %7.2f %7.3f %9.1f ( %9.1f ) %7.3f %7.3f \n",$qst,$Mp-$Mm,$r,$DE,$DEc, $q,$d);
+}
