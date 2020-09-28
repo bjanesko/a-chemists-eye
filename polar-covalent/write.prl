@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+use strict;
+for(my $q=0;$q<=2.001;$q=$q+0.05){
+	my $qst=sprintf("%04.2f",$q);
+	foreach my $type('H2','Hp','Hm','Hmm'){
+	open F, ">$type-$qst.com";
+	print F "%mem=4GB\n%nprocshared=4\n%chk=$type-$qst.chk\n#P HF genecp nosymm ";
+	if($type eq 'H2'){print F " opt ";}
+	print F "\n\n$type-$qst\n\n";
+	if($type eq 'H2'){
+		print F "0 1\nH\nH 1 0.74\n\nH 0\naug-cc-pvqz\n****\n\n";
+		print F "1 0\nTEST 0 0\nspd\n1\n1 1.0 +$qst\n";
+		print F "2 0\nTEST 0 0\nspd\n1\n1 1.0 -$qst\n";
+	}
+	else{
+		if($type eq 'Hmm'){print F "-1 1\n";}
+		else{print F "0 2\n";}
+		print F "H\n\nH 0\naug-cc-pvqz\n****\n\n";
+		print F "1 0\nTEST 0 0\nspd\n1\n1 1.0 ";
+		if($type eq 'Hp'){print F "+$qst\n";}
+		else{print F "-$qst\n";}
+	}
+	print F "\n\n";
+	close(F);
+}}
